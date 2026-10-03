@@ -1,5 +1,3 @@
-# tktturik/ci-templates/.github/workflows/frontend-service.yml
-# Reusable workflow для фронтенда
 name: Frontend Service CI
 
 on:
