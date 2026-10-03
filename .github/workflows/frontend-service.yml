@@ -191,13 +191,10 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Update values.yaml
-        env:
-          NEW_TAG: ${{ steps.tag.outputs.tag }}
         run: |
           yq eval \
-            '(.${{ inputs.chart-name }}.${{ inputs.service-name }}.tag) |= env.NEW_TAG' \
+            '(.${{ inputs.chart-name }}.${{ inputs.service-name }}.tag) |= "${{ steps.tag.outputs.tag }}"' \
             -i infra/charts/platform/values.yaml
-      - name: Check if changes exist
         id: diff
         run: |
           if git diff --exit-code infra/charts/platform/values.yaml; then
