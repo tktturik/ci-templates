@@ -13,6 +13,11 @@ on:
         required: true
         type: string
         description: "GHCR image name (usually same as service-name)"
+      chart-name:
+        required: true
+        type: string
+        default: "demo-chart"
+        description: "Chart name in values.yaml (namespace/chart context)"
       working-directory:
         required: false
         type: string
@@ -290,9 +295,8 @@ jobs:
           NEW_TAG: ${{ steps.tag.outputs.tag }}
           SERVICE_NAME: ${{ inputs.service-name }}
         run: |
-          # Для Python-сервисов, обновляем массив backends[] по имени сервиса
           yq eval \
-            '(.demo-chart.backends[] | select(.name == env.SERVICE_NAME) | .tag) |= env.NEW_TAG' \
+            '(.${{ inputs.chart-name }}.backends[] | select(.name == "${{ inputs.service-name }}") | .tag) |= "${{ steps.tag.outputs.tag }}"' \
             -i infra/charts/platform/values.yaml
 
       - name: Check if changes exist
