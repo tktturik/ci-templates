@@ -195,6 +195,7 @@ jobs:
           yq eval \
             '(.${{ inputs.chart-name }}.${{ inputs.service-name }}.tag) |= "${{ steps.tag.outputs.tag }}"' \
             -i infra/charts/platform/values.yaml
+      - name: Check if changes exist
         id: diff
         run: |
           if git diff --exit-code infra/charts/platform/values.yaml; then
