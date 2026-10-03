@@ -176,7 +176,7 @@ jobs:
 
 
       - name: Run integration tests
-        run: pytest tests/integration -v --timeout=60
+        run: pytest tests/integrations -v --timeout=60
 
   # ============================================================================
   # Job 4: Build & Push to GHCR (only on push, not on PR)
