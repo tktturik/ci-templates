@@ -249,8 +249,9 @@ jobs:
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
-          sarif_file: "trivy-results.sarif"
+          sarif_file: "trivy-results.sarif" # Для закрытых репозиториев
 
   # ============================================================================
   # Job 5: Update Manifests (only on push to main)
