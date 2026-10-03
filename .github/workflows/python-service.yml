@@ -105,7 +105,7 @@ jobs:
           pip install -r requirements-dev.txt 2>/dev/null || true
 
       - name: Run unit tests
-        run: pytest tests/unit -v --cov=src --cov-report=term-missing
+        run: pytest tests/unit-tests -v --cov=src --cov-report=term-missing
 
   # ============================================================================
   # Job 3: Integration Tests (only on push, requires database)
