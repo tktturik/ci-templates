@@ -11,6 +11,11 @@ on:
         required: true
         type: string
         description: "Service name as in values.yaml (e.g., frontend)"
+      chart-name:
+        required: true
+        type: string
+        default: "demo-chart"
+        description: "Chart name in values.yaml (namespace/chart context)"
       node-version:
         required: false
         type: string
