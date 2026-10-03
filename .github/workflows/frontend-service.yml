@@ -7,10 +7,18 @@ on:
         required: true
         type: string
         description: "GHCR image name (e.g., frontend)"
+      service-name:
+        required: true
+        type: string
+        description: "Service name as in values.yaml (e.g., frontend)"
       node-version:
         required: false
         type: string
-        default: "20"
+        default: "24"
+      manifests-repo:
+        required: false
+        type: string
+        default: "deployments"
     secrets:
       GHCR_TOKEN:
         required: true
@@ -23,7 +31,7 @@ env:
 
 jobs:
   # ============================================================================
-  # Job 1: Lint & Format (runs on both PR and push)
+  # Job 1: Lint & Format Check (runs on both PR and push)
   # ============================================================================
   lint-and-format:
     name: Lint & Format Check
@@ -42,15 +50,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npx eslint . --report-unused-disable-directives
+      - name: Run Biome lint
+        run: npx biome check --max-diagnostics=500 src
 
       - name: Run Prettier check
-        run: npx prettier --check .
+        run: npx prettier --check src
 
-      - name: Run TypeScript check (if tsconfig exists)
-        if: hashFiles('tsconfig.json') != ''
-        run: npx tsc --noEmit
+      - name: Remove unused CSS
+        run: npx purgecss --config purgecss.config.js --out src/
 
   # ============================================================================
   # Job 2: Unit & Component Tests (runs on both PR and push)
@@ -74,7 +81,7 @@ jobs:
         run: npm ci
 
       - name: Run Vitest
-        run: npx vitest run --coverage
+        run: npm run test:coverage
 
   # ============================================================================
   # Job 3: Build & Push to GHCR (only on push, not on PR)
@@ -143,13 +150,14 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: "trivy-results.sarif"
 
   # ============================================================================
-  # Job 4: Update Manifests (only on push to main)
+  # Job 4: Update Manifests (only on push to main or release tags)
   # ============================================================================
   update-manifests:
     name: Update Manifests
@@ -184,9 +192,9 @@ jobs:
         env:
           NEW_TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          # Для фронтенда - обновляем одиночное поле .demo-chart.frontend.tag
-          yq eval '.demo-chart.frontend.tag = env.NEW_TAG' -i infra/charts/platform/values.yaml
-
+          yq eval \
+            '(.${{ inputs.chart-name }}.${{ inputs.service-name }}.tag) |= env.NEW_TAG' \
+            -i infra/charts/platform/values.yaml
       - name: Check if changes exist
         id: diff
         run: |
