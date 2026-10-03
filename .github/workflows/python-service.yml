@@ -159,21 +159,21 @@ jobs:
           pip install -r requirements-dev.txt 2>/dev/null || true
 
       - name: Parse custom env vars
-            if: secrets.CUSTOM_ENV_VARS != ''
-            run: |
-              python3 << 'EOF'
-              import json
-              import os
-              
-              custom_vars = os.getenv('CUSTOM_VARS', '{}')
-              try:
-                  vars_dict = json.loads(custom_vars)
-                  for key, value in vars_dict.items():
-                      with open(os.environ['GITHUB_ENV'], 'a') as f:
-                          f.write(f"{key}={value}\n")
-              except json.JSONDecodeError:
-                  print("Warning: CUSTOM_ENV_VARS не валидный JSON")
-              EOF
+        if: secrets.CUSTOM_ENV_VARS != ''
+        run: |
+          python3 << 'EOF'
+          import json
+          import os
+          
+          custom_vars = os.getenv('CUSTOM_VARS', '{}')
+          try:
+              vars_dict = json.loads(custom_vars)
+              for key, value in vars_dict.items():
+                  with open(os.environ['GITHUB_ENV'], 'a') as f:
+                      f.write(f"{key}={value}\n")
+          except json.JSONDecodeError:
+              print("Warning: CUSTOM_ENV_VARS не валидный JSON")
+          EOF
 
 
       - name: Run integration tests
