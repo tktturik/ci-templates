@@ -61,9 +61,6 @@ jobs:
       - name: Run Prettier check
         run: npx prettier --check src
 
-      - name: Remove unused CSS
-        run: npx purgecss --config purgecss.config.js --output src/
-
   # ============================================================================
   # Job 2: Unit & Component Tests (runs on both PR and push)
   # ============================================================================
