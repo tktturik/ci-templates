@@ -193,7 +193,7 @@ jobs:
       - name: Update values.yaml
         run: |
           yq eval \
-            '(.${{ inputs.chart-name }}.${{ inputs.service-name }}.tag) |= "${{ steps.tag.outputs.tag }}"' \
+            '(.${{ inputs.chart-name }}.frontends[] | select(.name == "${{ inputs.service-name }}") | .tag) |= "${{ steps.tag.outputs.tag }}"' \
             -i infra/charts/platform/values.yaml
       - name: Check if changes exist
         id: diff
