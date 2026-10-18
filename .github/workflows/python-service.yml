@@ -105,7 +105,7 @@ jobs:
           pip install -r requirements-dev.txt 2>/dev/null || true
 
       - name: Run unit tests
-        run: pytest tests/unit-tests -v --cov=src --cov-report=term-missing
+        run: pytest tests/unit -v --cov=src --cov-report=term-missing
 
   # ============================================================================
   # Job 3: Integration Tests (only on push, requires database)
@@ -159,7 +159,7 @@ jobs:
           pip install -r requirements-dev.txt 2>/dev/null || true
 
       - name: Run integration tests
-        run: pytest tests/integrations -v --timeout=60
+        run: pytest tests/integration -v --timeout=60
 
   # ============================================================================
   # Job 4: Build & Push to GHCR (only on push, not on PR)
