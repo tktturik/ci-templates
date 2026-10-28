@@ -16,14 +16,19 @@ on:
         type: string
         default: "demo-chart"
         description: "Chart name in values.yaml (namespace/chart context)"
+      manifests-repo:
+        required: true
+        type: string
+        description: "Repo name with manifests (owner is taken from repository_owner)"
+      values-file:
+        required: true
+        type: string
+        description: "Path to values.yaml inside manifests repo"
       node-version:
         required: false
         type: string
         default: "24"
-      manifests-repo:
-        required: false
-        type: string
-        default: "deployments"
+
     secrets:
       GHCR_TOKEN:
         required: true
@@ -191,14 +196,22 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Update values.yaml
+        env:
+          NEW_TAG: ${{ steps.tag.outputs.tag }}
+          SERVICE_NAME: ${{ inputs.service-name }}
+          VALUES_FILE: infra/charts/platform/values.yaml
+          CHART_NAME: ${{ inputs.chart-name }}
         run: |
           yq eval \
-            '(.${{ inputs.chart-name }}.frontends[] | select(.name == "${{ inputs.service-name }}") | .tag) |= "${{ steps.tag.outputs.tag }}"' \
-            -i infra/charts/platform/values.yaml
+            '(.[strenv(CHART_NAME)].frontends[] | select(.name == strenv(SERVICE_NAME)) | .tag) |= strenv(NEW_TAG)' \
+            -i "$VALUES_FILE"
+
       - name: Check if changes exist
         id: diff
+        env:
+          VALUES_FILE: infra/charts/platform/values.yaml
         run: |
-          if git diff --exit-code infra/charts/platform/values.yaml; then
+          if git diff --exit-code "$VALUES_FILE"; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -206,9 +219,11 @@ jobs:
 
       - name: Commit and push (if changes exist)
         if: steps.diff.outputs.changed == 'true'
+        env:
+          VALUES_FILE: infra/charts/platform/values.yaml
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infra/charts/platform/values.yaml
-          git commit -m "ci: update frontend to ${{ steps.tag.outputs.tag }} (triggered by ${{ github.repository }}@${{ github.sha }})"
+          git add "$VALUES_FILE"
+          git commit -m "ci: update ${{ inputs.service-name }} to ${{ steps.tag.outputs.tag }} (triggered by ${{ github.repository }}@${{ github.sha }})"
           git push origin main
