@@ -199,7 +199,7 @@ jobs:
         env:
           NEW_TAG: ${{ steps.tag.outputs.tag }}
           SERVICE_NAME: ${{ inputs.service-name }}
-          VALUES_FILE: infra/charts/platform/values.yaml
+          VALUES_FILE: ${{ inputs.values-file }}
           CHART_NAME: ${{ inputs.chart-name }}
         run: |
           yq eval \
@@ -209,7 +209,7 @@ jobs:
       - name: Check if changes exist
         id: diff
         env:
-          VALUES_FILE: infra/charts/platform/values.yaml
+          VALUES_FILE: ${{ inputs.values-file }}
         run: |
           if git diff --exit-code "$VALUES_FILE"; then
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -220,7 +220,7 @@ jobs:
       - name: Commit and push (if changes exist)
         if: steps.diff.outputs.changed == 'true'
         env:
-          VALUES_FILE: infra/charts/platform/values.yaml
+          VALUES_FILE: ${{ inputs.values-file }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
